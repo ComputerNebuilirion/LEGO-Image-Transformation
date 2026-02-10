@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+import time
+import collections
 class Brick:
     def __init__(self, x, y, width, height, color, color_name):
         self.x = x 
@@ -343,6 +345,10 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
 camera = LegoCamera(grid_size=6, brick_pixel_size=20)
 camera.start()
 
+fps_history = collections.deque(maxlen=30)
+prev_time = time.time()
+font = cv2.FONT_HERSHEY_SIMPLEX
+
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -357,6 +363,19 @@ while True:
         rendered = cv2.cvtColor(rendered, cv2.COLOR_RGB2BGR)
         
         display = cv2.resize(rendered, (960, 720))
+
+        current_time = time.time()
+        delta = current_time - prev_time
+        prev_time = current_time
+        
+        if delta > 0:
+            instant_fps = 1.0 / delta
+            fps_history.append(instant_fps)
+            avg_fps = sum(fps_history) / len(fps_history)
+            
+            cv2.putText(display, f"FPS: {avg_fps:.1f}", (10, 30), 
+                        font, 1, (0, 255, 0), 2)
+        
         cv2.imshow('LEGO Filter', display)
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
