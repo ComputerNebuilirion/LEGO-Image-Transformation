@@ -342,7 +342,7 @@ cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 480)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
 
-camera = LegoCamera(grid_size=6, brick_pixel_size=20)
+camera = LegoCamera(grid_size=8, brick_pixel_size=20)
 camera.start()
 
 fps_history = collections.deque(maxlen=30)
