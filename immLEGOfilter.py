@@ -61,7 +61,6 @@ class LegoColorPalette:
         closest_color = (0, 0, 0)
         
         for name, color in cls.COLORS.items():
-            # 计算欧氏距离
             dist = (bgr_color[0] - color[0]) ** 2 + \
                    (bgr_color[1] - color[1]) ** 2 + \
                    (bgr_color[2] - color[2]) ** 2
@@ -241,7 +240,7 @@ class LegoConverter:
         grid, color_names, small = self.quantizer.quantize(img)
         grid_h, grid_w = grid.shape[:2]
         
-        print(f"Grid size: {grid_w}x{grid_h} ({grid_w * grid_h} cells)")
+        #print(f"Grid size: {grid_w}x{grid_h} ({grid_w * grid_h} cells)")
         
         bricks = self.merger.merge(grid, color_names)
         
