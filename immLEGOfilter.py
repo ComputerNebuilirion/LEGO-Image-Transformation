@@ -71,6 +71,13 @@ class LegoColorPalette:
         
         return closest_name, closest_color
     
+def white_balance_out(img):
+        lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+        l, a, b = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+        l = clahe.apply(l)
+        balanced = cv2.merge([l, a, b])
+        return cv2.cvtColor(balanced, cv2.COLOR_LAB2BGR)
 
 class GridQuantizer:
     def __init__(self, grid_size=4):
@@ -348,6 +355,9 @@ fps_history = collections.deque(maxlen=30)
 prev_time = time.time()
 font = cv2.FONT_HERSHEY_SIMPLEX
 
+LEGO_ON = False
+WHITE_ON = False
+
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -355,30 +365,45 @@ while True:
 
     small = cv2.flip(frame, 1)
     small = cv2.cvtColor(small, cv2.COLOR_BGR2RGB)
+
+    if LEGO_ON:
     
-    rendered = camera.process_frame(small)
+        rendered = camera.process_frame(small)
 
-    if rendered is not None:
-        rendered = cv2.cvtColor(rendered, cv2.COLOR_RGB2BGR)
-        
-        display = cv2.resize(rendered, (960, 720))
-
-        current_time = time.time()
-        delta = current_time - prev_time
-        prev_time = current_time
-        
-        if delta > 0:
-            instant_fps = 1.0 / delta
-            fps_history.append(instant_fps)
-            avg_fps = sum(fps_history) / len(fps_history)
+        if rendered is not None:
+            rendered = cv2.cvtColor(rendered, cv2.COLOR_RGB2BGR)
             
-            cv2.putText(display, f"FPS: {avg_fps:.1f}", (10, 30), 
-                        font, 1, (0, 255, 0), 2)
-        
-        cv2.imshow('LEGO Filter', display)
+            display = cv2.resize(rendered, (960, 720))
+
+            current_time = time.time()
+            delta = current_time - prev_time
+            prev_time = current_time
+            
+            if delta > 0:
+                instant_fps = 1.0 / delta
+                fps_history.append(instant_fps)
+                avg_fps = sum(fps_history) / len(fps_history)
+                
+                cv2.putText(display, f"FPS: {avg_fps:.1f}", (10, 30), 
+                            font, 1, (0, 255, 0), 2)
+            
+            cv2.imshow('LEGO Filter', display)
     
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    else:
+        small = cv2.cvtColor(small, cv2.COLOR_RGB2BGR)
+        small = cv2.resize(small, (960, 720))
+        if WHITE_ON:
+            small = white_balance_out(small)
+        cv2.imshow("LEGO Filter", small)
+
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord('q'):
         break
+    elif key == ord('l'):
+        LEGO_ON = not LEGO_ON
+    elif key == ord('w'):
+        WHITE_ON = not WHITE_ON
+    
 
 camera.stop()
 cap.release()
